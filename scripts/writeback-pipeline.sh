@@ -281,27 +281,86 @@ elif status == "success":
     if evidence:
         report_lines.append(f"  证据: {evidence[:200]}")
     
-    # 判断是否有策略价值（启发式）
+    # ── 策略价值评估（多信号启发式 + LLM 升级路径） ──
+    #
+    # ET3rd 评审 P0-2: 旧的关键词匹配过于启发式，遗漏高价值经验。
+    # 改进为多信号评分：
+    #   S1: artifacts 数量信号（≥2 = 可复用工作流）
+    #   S2: evidence 深度信号（长度 > 100 字符 = 有实质性内容）
+    #   S3: evidence 质量信号（包含洞察类关键词 = 深度思考）
+    #   S4: planning suggestion 信号
+    #
+    # LLM 升级路径（TODO）:
+    #   当 llm-task 可用时，替代 S2+S3 为 LLM 判断：
+    #   llm-task --prompt "评估以下执行结果是否有值得提炼为技能卡的经验。
+    #     只回答 JSON: {\"value\": \"high\"|\"medium\"|\"low\", \"reason\": \"一句话原因\"}
+    #     结果: <result_json>"
+    #   当前保留启发式作为 fallback，保证离线可用。
+    #
+    signals = []  # 收集命中的信号
+    evidence_len = len(evidence) if evidence else 0
+    artifact_count = len(artifacts)
+
+    # S1: 多产出物 → 可复用工作流
+    if artifact_count >= 2:
+        signals.append("S1:多产出物({})".format(artifact_count))
+
+    # S2: evidence 深度 → 有实质性内容（长度 > 100 字符）
+    if evidence_len > 100:
+        signals.append("S2:evidence深度({}chars)".format(evidence_len))
+
+    # S3: evidence 质量关键词（洞察、发现、关键、模式、策略）
+    insight_keywords = [
+        # 中文
+        '使用', '调用', '配置', '安装', '运行', '关键', '发现', '洞察', '策略', '模式', '方法',
+        # 英文
+        'insight', 'discovered', 'key', 'pattern', 'strategy', 'approach',
+        'important', 'lesson', 'learned', 'found that', 'turns out',
+        'exec', 'script', 'command', 'refactor', 'optimize',
+    ]
+    evidence_lower = (evidence or "").lower()
+    matched_insight_kws = [kw for kw in insight_keywords if kw in evidence_lower]
+    if matched_insight_kws:
+        signals.append("S3:洞察关键词({})".format(len(matched_insight_kws)))
+
+    # S4: planning suggestion 信号
+    if planning_suggestion:
+        signals.append("S4:规划建议")
+
+    # ── 评分规则 ──
+    # - 单信号 S1（多产出物）→ high value
+    # - 双信号 S2+S3（深度+关键词）→ high value（即使 artifacts < 2）
+    # - 单信号 S2 或 S3 → medium value（仍可能值得记录）
+    # - 无信号 → low value（常规成功）
     has_strategy_value = False
     strategy_reason = ""
-    
-    # 条件1: 有多个产出物
-    if len(artifacts) >= 2:
+    value_level = "low"  # low / medium / high
+
+    has_s1 = any(s.startswith("S1:") for s in signals)
+    has_s2 = any(s.startswith("S2:") for s in signals)
+    has_s3 = any(s.startswith("S3:") for s in signals)
+    has_s4 = any(s.startswith("S4:") for s in signals)
+
+    if has_s1 or has_s4:
+        # 多产出物 或 有规划建议 → 明确高价值
         has_strategy_value = True
-        strategy_reason = "多产出物（可能包含可复用的工作流）"
-    
-    # 条件2: evidence 中包含工具/方法名
-    if evidence and any(kw in evidence.lower() for kw in ['使用', '调用', '配置', '安装', '运行', 'exec', 'script', 'command']):
+        value_level = "high"
+        strategy_reason = "{}".format(", ".join(signals))
+    elif has_s2 and has_s3:
+        # 深度证据 + 洞察关键词 → 高价值（即使 artifacts < 2）
         has_strategy_value = True
-        strategy_reason = "证据中包含可复用的方法描述"
-    
-    # 条件3: 有 planning suggestion
-    if planning_suggestion:
-        has_strategy_value = True
-        strategy_reason = "包含规划层建议"
+        value_level = "high"
+        strategy_reason = "{}".format(", ".join(signals))
+    elif has_s2 or has_s3:
+        # 单独深度证据 或 单独洞察关键词 → 中等价值
+        # 不生成 draft 技能卡，但标记为 medium
+        value_level = "medium"
+        strategy_reason = "{}".format(", ".join(signals))
+    else:
+        strategy_reason = "常规成功（无显著策略信号）"
     
     if has_strategy_value:
-        report_lines.append(f"  策略价值: ✅ ({strategy_reason})")
+        report_lines.append(f"  策略价值: ✅ {value_level} ({strategy_reason})")
         report_lines.append("")
         
         # 生成 draft 技能卡
@@ -368,7 +427,7 @@ sources:
             report_lines.append(f"  ✅ 已生成 draft 技能卡: {output_path}")
         report_lines.append("")
     else:
-        report_lines.append("  策略价值: 无（常规成功步骤）")
+        report_lines.append(f"  策略价值: 无（{strategy_reason}）")
         report_lines.append("")
 
 # ===== 3. blocked 处理 =====
