@@ -1,0 +1,4 @@
+.DS_Store
+*.log
+skill-cards/pending/*.md
+!skill-cards/pending/.gitkeep

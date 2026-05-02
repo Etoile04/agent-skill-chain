@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schemas/step-plan.json",
+  "title": "Plan-Exec Separation Schemas",
+  "description": "规划-执行分离架构的核心 JSON Schema 定义。包含 StepPlan、Step、StepResult、ComplexityAssessment 四个实体。",
+
+  "definitions": {
+
+    "ComplexityAssessment": {
+      "type": "object",
+      "description": "复杂度评估结果，决定任务是否进入规划-执行分离模式。",
+      "required": ["isComplex", "reason", "estimatedSteps", "hasRelevantErrors"],
+      "properties": {
+        "isComplex": {
+          "type": "boolean",
+          "description": "是否为复杂任务。true → 进入分离模式，false → 直接执行。"
+        },
+        "reason": {
+          "type": "string",
+          "description": "判断理由的简短说明。"
+        },
+        "estimatedSteps": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "预估步骤数。≥ 3 通常标记为复杂。"
+        },
+        "hasRelevantErrors": {
+          "type": "boolean",
+          "description": ".learnings/ERRORS.md 或 memory_search 中是否存在相关错误记录。"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "Step": {
+      "type": "object",
+      "description": "执行步骤定义。由 Planning Agent 生成，传递给 Execution Agent。",
+      "required": ["id", "goal", "strategy_hint", "verify"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^step-[a-z0-9-]+$",
+          "description": "步骤唯一标识。格式: step-<描述性短名>。"
+        },
+        "goal": {
+          "type": "string",
+          "description": "这一步要达成什么目标。例: '将 UserService 的认证逻辑抽取到独立模块'。"
+        },
+        "strategy_hint": {
+          "type": "string",
+          "description": "策略偏好——这类问题的一般解法思路，不是具体命令。例: '这类抽取通常先建新模块骨架，再迁移调用方'。约束: 不可包含可直接复制粘贴执行的 shell 命令或代码片段。"
+        },
+        "risk_notes": {
+          "type": "string",
+          "description": "已知风险标注（可选）。标注潜在陷阱但不给具体规避指令。例: '这个项目循环依赖敏感，注意 import 顺序'。"
+        },
+        "verify": {
+          "type": "string",
+          "description": "完成标准。例: '相关测试全部通过，无新增 lint error'。"
+        },
+        "tools_hint": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "建议使用的工具列表（可选）。例: ['exec', 'read', 'edit']。"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "StepPlan": {
+      "type": "object",
+      "description": "Planning Agent 的输出——任务执行计划。",
+      "required": ["overall_approach", "steps", "fallback_triggers", "complexity_assessment"],
+      "properties": {
+        "overall_approach": {
+          "type": "string",
+          "description": "整体策略偏好描述，不是具体动作序列。例: '这类多文件重构任务通常先建立类型定义，再逐文件替换，每步后运行类型检查确认无回归'。"
+        },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Step" },
+          "minItems": 1,
+          "description": "有序步骤列表。"
+        },
+        "fallback_triggers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "什么情况需要回退到规划层重新规划。例: ['类型检查报错超过5处', '发现依赖关系与预期不符']。"
+        },
+        "complexity_assessment": {
+          "$ref": "#/definitions/ComplexityAssessment",
+          "description": "本次任务的复杂度评估。"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "StepResult": {
+      "type": "object",
+      "description": "Execution Agent 的输出——单步执行结果。",
+      "required": ["stepId", "status"],
+      "properties": {
+        "stepId": {
+          "type": "string",
+          "description": "对应的步骤 ID，与 StepPlan.steps[].id 匹配。"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["success", "failed", "blocked"],
+          "description": "执行状态。success=完成，failed=失败，blocked=被阻塞需外部干预。"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "成功时：产出的文件路径或变更描述。"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "成功时：为什么认为完成了。如测试输出、文件对比结果。"
+        },
+        "error": {
+          "type": "object",
+          "description": "失败/阻塞时：错误详情。",
+          "required": ["message", "attempts", "hypothesis"],
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "错误描述。"
+            },
+            "attempts": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "已尝试的方法列表。"
+            },
+            "hypothesis": {
+              "type": "string",
+              "description": "失败原因假设。Execution Agent 自主分析，不含经验检索结果。"
+            }
+          },
+          "additionalProperties": false
+        },
+        "planningSuggestion": {
+          "type": "string",
+          "description": "Execution Agent 可选的规划层反馈。如建议调整后续步骤或回退重新规划。"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "ExperienceSummary": {
+      "type": "object",
+      "description": "经验检索摘要——仅传递给 Planning Agent，禁止传递给 Execution Agent。",
+      "properties": {
+        "errorPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pattern", "relevance"],
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "错误模式摘要（非原始错误记录）。"
+              },
+              "relevance": {
+                "type": "string",
+                "enum": ["high", "medium"],
+                "description": "与当前任务的相关度。"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "proceduralHints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["taskType", "approach", "caveats"],
+            "properties": {
+              "taskType": {
+                "type": "string",
+                "description": "任务类型。"
+              },
+              "approach": {
+                "type": "string",
+                "description": "推荐思路（策略级，非具体指令）。"
+              },
+              "caveats": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "注意事项。"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
