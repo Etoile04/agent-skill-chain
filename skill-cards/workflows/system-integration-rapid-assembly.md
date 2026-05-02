@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - .learnings/LEARNINGS.md
 related_learnings:
@@ -33,6 +34,18 @@ planning_hints:
 # 系统整合快速组装工作流
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct: []  # 无硬性领域约束
+  indirect:
+    - "分层设计 + 单向流动 + 自动化验证 + 一次完成"
+    - "趁热打铁，一次完成到 100%，避免上下文切换"
+    - "单向数据流是整合成功的关键约束"
+  forbidden:
+    - "具体脚本和文件路径见 e_workflow"
+```
 
 ### 有效的策略
 - **分层设计**：每个系统专注自己的强项（memory/ 原始轨迹 → skill-cards/ 结构化摘要 → .learnings/ 错误明细）

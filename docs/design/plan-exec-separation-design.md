@@ -306,6 +306,30 @@ sessions_spawn:
   # 无任何经验注入
 ```
 
+### C4: 经验类型分级传递
+
+基于 ET3rd 评审建议的三分法，不同类型的经验在传递链中有不同处理方式：
+
+| 经验类型 | transfer_mode | 传递规则 | 示例 |
+|---------|---------------|---------|------|
+| 领域约束 | `direct` | 可直接注入 Execution Agent prompt | "acpx --cwd 是全局选项"、"飞书并发写锁" |
+| 策略偏好 | `indirect` | 只能通过 Planning Agent → strategy_hint 间接传递 | "先验证再使用"、"保守起步" |
+| 具体操作 | `forbidden` | 不允许出现在任何自动传递流程中 | 具体命令、文件路径、密钥 |
+
+**实现要点**:
+
+1. **技能卡标记**: 每张技能卡在 YAML frontmatter 中声明 `transfer_mode`（卡片级默认）+ 正文经验条目中逐条标记（条目级覆盖）
+2. **Planning Agent 行为**:
+   - 遇到 `direct` 经验 → 可直接嵌入 strategy_hint（因属于不可变事实，不破坏探索）
+   - 遇到 `indirect` 经验 → 转化为策略偏好描述（当前行为，不变）
+   - 遇到 `forbidden` 经验 → 不传递，仅 Planning Agent 自身参考
+3. **Execution Agent 行为**:
+   - 可接收 `direct` 类型的经验注入（新增）
+   - 仍然不接收 `indirect` 经验的原始内容（保持 C1 约束）
+   - 完全不接触 `forbidden` 经验
+
+**与 C1 的关系**: C4 细化了 C1 的约束——C1 原则性禁止所有经验注入，C4 开了一个精确的例外窗口：只有 `transfer_mode: direct` 的领域约束可以被注入 Execution Agent prompt。这是安全的，因为领域约束是不可变事实（如 API 参数位置），不会破坏探索能力。
+
 ---
 
 ## 4. 与现有系统的集成点

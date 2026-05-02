@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - .learnings/ERRORS.md
 related_learnings:
@@ -36,6 +37,19 @@ planning_hints:
 # 飞书文件发送路径限制模式
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct:
+    - "飞书文件发送只允许 workspace 目录下的文件，/tmp、/var 等全部被拦截"
+    - "open_id 与 app_id 必须匹配，cross app 错误说明账号不匹配"
+  indirect:
+    - "发送前先检查三件事：1) 路径在 workspace 下 2) 用 media 参数 3) account 匹配"
+  - "统一文件流转路径：源文件 → cp 到 workspace → media 参数发送"
+  forbidden:
+    - "具体路径和命令见 e_workflow"
+```
 
 ### 有效的策略
 - **Workspace 内操作**：所有待发送文件先复制到 workspace 目录下

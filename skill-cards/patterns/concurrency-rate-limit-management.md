@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - .learnings/ERRORS.md
   - .learnings/LEARNINGS.md
@@ -37,6 +38,19 @@ planning_hints:
 # 并发与 API 限流管理模式
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct:
+    - "4 并发已证实触发 zai/glm-5 的日配额限制"
+    - "负数 Runtime = 任务未启动 = 系统级问题（限流/配额/资源），不是 timeout"
+  indirect:
+    - "从低并发开始（2），监控 API 错误率，根据配额动态调整"
+    - "LLM 限流时不要空等，准备本地 ollama 模型作为 fallback"
+  forbidden:
+    - "具体执行命令和参数配置见 e_workflow"
+```
 
 ### 有效的策略
 - **保守起步**：初始并发设为 2（安全值），根据实际表现调整

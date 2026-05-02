@@ -48,7 +48,9 @@
         },
         "strategy_hint": {
           "type": "string",
-          "description": "策略偏好——这类问题的一般解法思路，不是具体命令。例: '这类抽取通常先建新模块骨架，再迁移调用方'。约束: 不可包含可直接复制粘贴执行的 shell 命令或代码片段。"
+          "maxLength": 200,
+          "description": "策略偏好——这类问题的一般解法思路，不是具体命令。例: '这类抽取通常先建新模块骨架，再迁移调用方'。约束: (1) 长度 ≤ 200 字符; (2) 不可包含可直接复制粘贴执行的 shell 命令或代码片段; (3) 不可包含文件路径（/home/, /tmp/, C:\\ 等）; (4) 不可包含 CLI 工具名（npm, git, curl 等）; (5) 不可包含错误代码（ERR- 前缀、HTTP 状态码）; (6) 不可包含 API key / token / secret 等敏感信息。【C1 泄露风险】strategy_hint 通过经验内化生成，过长的 hint 或包含具体路径/命令可能间接泄露 ExperienceSummary 中的原始错误记录细节，违反 C1（经验不外传）约束。保持策略级、抽象化、简短。",
+          "pattern": "^(?!.*(?:/home/|/tmp/|/var/|/etc/|/usr/|/opt/|C:\\\\|D:\\\\).*)(?!.*\\b(?:npm|npx|yarn|pnpm|git|curl|wget|bash|python|pip|docker|kubectl|make|gcc|cargo|go run|mv|cp|rm|chmod|ssh|scp|rsync|apt|yum|brew)\\b).*$"
         },
         "risk_notes": {
           "type": "string",

@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - .learnings/ERRORS.md
 related_learnings:
@@ -35,6 +36,18 @@ planning_hints:
 # 嵌套路径与配置漂移模式
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct:
+    - ".learnings/ 是唯一的规范路径，不允许嵌套的 .learnings/.learnings/"
+  indirect:
+    - "操作前验证文件/目录是否存在和正确"
+    - "系统初始化时创建所有基线文件"
+  forbidden:
+    - "具体文件路径和命令见 e_workflow"
+```
 
 ### 有效的策略
 - **操作前验证**：读/写文件前先验证路径存在和正确

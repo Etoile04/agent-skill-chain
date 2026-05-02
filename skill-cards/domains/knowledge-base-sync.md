@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - memory/2026-04-29.md
 planning_hints:
@@ -31,6 +32,19 @@ planning_hints:
 # 知识库构建与飞书同步工作流
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct:
+    - "飞书知识空间同一 folder 不支持并发写，必须串行操作 + 间隔"
+    - "macOS shasum 默认 SHA-1，必须显式指定 shasum -a 256"
+  indirect:
+    - "本地先构建验证，再同步飞书；增量同步 + hash 校验只同步变更部分"
+    - "映射文件是双向同步的关键，不要丢失"
+  forbidden:
+    - "具体同步命令和脚本路径见 e_workflow"
+```
 
 ### 有效的策略
 - **论文阅读后立即提炼**：读完论文立刻做 PRD 映射分析，不拖延

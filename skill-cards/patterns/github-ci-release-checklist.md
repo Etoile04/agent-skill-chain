@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - .learnings/LEARNINGS.md
 related_learnings:
@@ -34,6 +35,18 @@ planning_hints:
 # GitHub CI 与发布检查模式
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct: []  # 无硬性领域约束
+  indirect:
+    - "发布前本地跑 lint + test，确认通过后再 push"
+    - "研究代码的 lint 规则应比生产代码宽松"
+    - "可选依赖在 import 时加载 = 不是真正的可选依赖"
+  forbidden:
+    - "具体 CI 配置和命令见 e_workflow"
+```
 
 ### 有效的策略
 - **发布前本地验证**：本地先跑 lint 和 test，确认通过后再 push

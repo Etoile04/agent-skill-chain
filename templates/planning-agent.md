@@ -72,9 +72,30 @@
 
 ## 关键约束
 
+### C1: strategy_hint 不得泄露经验细节
+
+ExperienceSummary 中的信息必须被**内化**为策略偏好，不能在 strategy_hint 中暴露原始错误编号、具体路径、历史事件等。这既是安全要求，也是为了保持输出的通用性。
+
+**违规标志**：
+- 出现 `.learnings/` 中的错误编号（如 `ERR-20260225-001`）
+- 出现具体的系统路径（如 `/home/user/project/`）
+- 出现与特定历史事件相关的描述（如"上次部署时因为..."）
+
 ### C2: strategy_hint 必须是策略偏好
 
 **判断标准**：如果 strategy_hint 可以直接复制粘贴为 shell 命令或代码片段，说明粒度过细。
+
+#### strategy_hint 长度与内容约束
+
+| 约束 | 规则 |
+|------|------|
+| 最大长度 | 200 字符（含中英文） |
+| 禁止: 文件路径 | `/home/`, `/tmp/`, `C:\\`, `./` 等路径模式 |
+| 禁止: CLI 命令 | `npm`, `git`, `curl`, `bash`, `python` 等工具名 |
+| 禁止: 错误代码 | `ERR-` 前缀、HTTP 状态码（404, 500 等） |
+| 禁止: 敏感信息 | `api_key`, `token`, `secret`, `password` 等 |
+
+> 使用 `scripts/validate-strategy-hint.sh` 可自动校验 StepPlan 是否合规。
 
 #### ✅ 正确示例
 
@@ -88,11 +109,12 @@
 }
 ```
 
-- strategy_hint 是一般性的策略思路
-- risk_notes 标注风险但不给具体规避指令
-- verify 是可检查的完成标准
+- strategy_hint 是一般性的策略思路 ✅
+- 长度适中，无路径/命令/错误码 ✅
+- risk_notes 标注风险但不给具体规避指令 ✅
+- verify 是可检查的完成标准 ✅
 
-#### ❌ 错误示例
+#### ❌ 错误示例 A：包含具体命令和路径
 
 ```json
 {
@@ -104,9 +126,36 @@
 }
 ```
 
-- strategy_hint 包含可直接执行的命令
-- risk_notes 变成了具体指令
-- verify 标准模糊，不可验证
+- strategy_hint 包含可直接执行的命令 ❌
+- risk_notes 变成了具体指令 ❌
+- verify 标准模糊，不可验证 ❌
+
+#### ❌ 错误示例 B：泄露经验细节（C1 违规）
+
+```json
+{
+  "id": "step-extract-auth",
+  "goal": "将 UserService 的认证逻辑抽取到独立模块",
+  "strategy_hint": "上次 ERR-20260225-001 是因为 /tmp/build/ 缓存未清理，记得先 curl -X DELETE http://localhost:8080/cache",
+  "verify": "缓存已清理"
+}
+```
+
+- 包含错误编号 ERR-20260225-001 ❌
+- 包含系统路径 /tmp/build/ ❌
+- 包含 CLI 命令 curl ❌
+- 暴露了历史事件细节 ❌
+
+#### ✅ 正确改写（经验内化后）
+
+```json
+{
+  "id": "step-extract-auth",
+  "goal": "将 UserService 的认证逻辑抽取到独立模块",
+  "strategy_hint": "构建前注意清理残留缓存，避免新旧代码混用",
+  "verify": "构建产物干净，无残留缓存"
+}
+```
 
 ---
 

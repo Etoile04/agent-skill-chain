@@ -50,6 +50,77 @@ related_cards:                 # 关联的其他技能卡
 | `sources` | ❌ | 原始对话轨迹来源 |
 | `related_learnings` | ❌ | 关联 `.learnings/` 条目 |
 | `related_cards` | ❌ | 关联其他技能卡 |
+| `transfer_mode` | ❌ | 经验传递模式，默认 `indirect`。详见下方「经验传递模式」 |
+
+## 经验传递模式（transfer_mode）
+
+基于 ET3rd 评审建议的三分法：区分不同类型的经验在 Planning→Execution 传递链中的处理方式。
+
+### 字段定义
+
+```yaml
+transfer_mode:
+  type: string
+  enum: [direct, indirect, forbidden]
+  default: indirect
+  description: |
+    经验传递模式：
+    - direct: 领域约束（物理定律、API 硬限制、不可变事实），可直接注入 prompt
+    - indirect: 策略偏好（方法论、经验法则），通过 planning_hints 间接传递
+    - forbidden: 具体操作（命令、文件路径、密钥），禁止自动传递
+```
+
+### 分类规则
+
+| 经验类型 | transfer_mode | 判断标准 | 传递方式 |
+|---------|---------------|---------|----------|
+| 领域约束 | `direct` | 不可变事实：API 参数位置、物理定律、协议限制 | 可直接注入 Execution Agent prompt |
+| 策略偏好 | `indirect` | 方法论、经验法则、通用思路 | 通过 Planning Agent → strategy_hint 间接传递 |
+| 具体操作 | `forbidden` | 具体命令、文件路径、密钥、版本号 | 禁止自动传递，仅人工查阅 |
+
+### 经验维度的默认 transfer_mode
+
+| 经验维度 | 默认 transfer_mode | 说明 |
+|---------|-------------------|------|
+| `e_success` 中的方法论 | `indirect` | 通用策略偏好 |
+| `e_success` 中的验证事实 | `direct` | 已验证的硬性约束 |
+| `e_mistake` 中的根因分析 | `indirect` | 策略级教训 |
+| `e_mistake` 中的硬性限制 | `direct` | API/协议/平台的不可变限制 |
+| `e_workflow` 中的具体命令 | `forbidden` | 具体执行命令不自动传递 |
+| `e_workflow` 中的方法论 | `indirect` | 流程级策略 |
+| `planning_hints` | `indirect` | 已有机制，保持不变 |
+
+### 多类型混合处理
+
+当一张技能卡同时包含多种 transfer_mode 的经验时，使用分级标记：
+
+```yaml
+transfer_mode: indirect  # 卡片级默认
+
+# 在正文经验条目中逐条标记
+experiences:
+  direct:
+    - "acpx 0.5.3 的 --cwd 是全局选项不是子命令选项"
+    - "飞书知识空间同一 folder 不支持并发写"
+  indirect:
+    - "外部工具命令行参数位置需查文档确认"
+    - "先评估复杂度再选择执行路径"
+  forbidden:
+    - "具体执行命令见 e_workflow"
+    - "具体文件路径见 e_workflow"
+```
+
+### 与 UCB 检索的关系
+
+- `direct` 经验占比高的卡片 → 检索时额外加权（传递无风险，优先使用）
+- `forbidden` 经验占比高的卡片 → 检索时标记为"参考但不注入"
+- `indirect` 经验 → 正常 UCB 评分
+
+### 与规划-执行分离的关系
+
+- `direct` 类型经验可直接注入 Execution Agent prompt（绕过间接传递）
+- `indirect` 类型只能通过 Planning Agent → strategy_hint 间接传递
+- `forbidden` 类型不允许出现在任何自动传递流程中
 
 ## 正文结构
 

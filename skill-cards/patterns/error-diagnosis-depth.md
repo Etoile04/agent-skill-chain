@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - .learnings/ERRORS.md
   - .learnings/LEARNINGS.md
@@ -35,6 +36,18 @@ planning_hints:
 # 错误诊断深度不足模式
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct: []  # 无硬性领域约束
+  indirect:
+    - "遇到错误先分类（表面/中间/根本），用 5-Why 追到根因，再制定修复方案"
+    - "暂停后不会自动恢复，必须主动检查和干预"
+    - "看到 timeout 先查 Runtime 值，负数 = 未启动 = 系统级问题"
+  forbidden:
+    - "具体诊断命令和脚本见 e_workflow"
+```
 
 ### 有效的策略
 - **5-Why 分析法**：连续追问 5 层为什么，追到根本原因

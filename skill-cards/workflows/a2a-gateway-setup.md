@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - memory/2026-04-26.md
 planning_hints:
@@ -32,6 +33,20 @@ planning_hints:
 # A2A Gateway 安装与调试工作流
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct:
+    - "A2A Gateway v1.4.0 REST 端点未注册，只能用 JSON-RPC 和 gRPC"
+    - "同一 agent 的活跃 session 会阻塞 A2A dispatch，必须分配独立专用 agent"
+    - "SSRF 防护需显式配置 fileUriAllowlist"
+  indirect:
+    - "分阶段验证：回环 ping → 异步任务 → 定向路由 → 并发压力，每层通过后再进入下一层"
+    - "安装前先备份配置 + 创建独立测试目录，降低回滚成本"
+  forbidden:
+    - "具体安装命令和配置见 e_workflow"
+```
 
 ### 有效的策略
 - **安装前先备份配置** + 创建独立测试目录，降低回滚成本

@@ -284,6 +284,77 @@ final_score(e) = decay_weight(e) × (α × ucb_norm(e) + β × sem_norm(e))
 阶段 3：预计算 embedding + 增量更新 + 可视化仪表盘
 ```
 
+## 6. 经验传递模式加权（transfer_mode weighting）
+
+### 6.1 背景
+
+基于 ET3rd 评审的经验类型三分法，不同 `transfer_mode` 的技能卡在检索时有不同的风险收益特征：
+
+| transfer_mode | 传递风险 | 适用场景 | 检索策略 |
+|---------------|---------|---------|----------|
+| `direct` | 无 | 领域约束（不可变事实） | 额外加权，优先使用 |
+| `indirect` | 低 | 策略偏好（方法论） | 正常 UCB 评分 |
+| `forbidden` | 高 | 具体操作（命令、路径） | 降权或标记为参考 |
+
+### 6.2 transfer_mode 加权因子
+
+在最终评分公式中引入 `transfer_bonus` 因子：
+
+```python
+# 扩展后的最终评分公式
+final_score(e) = decay_weight(e) × transfer_bonus(e) × (α × ucb_norm(e) + β × semantic_sim(e, query))
+```
+
+| transfer_mode | transfer_bonus | 说明 |
+|---------------|----------------|------|
+| `direct` | 1.2 | 领域约束传递无风险，优先检索 |
+| `indirect` | 1.0 | 默认，无额外加权 |
+| `forbidden` | 0.5 | 具体操作有传递风险，降权 |
+
+### 6.3 forbidden 类型的检索处理
+
+`forbidden` 类型的技能卡不应完全排除在检索结果之外（它们仍包含有价值的策略信息），但需特殊处理：
+
+1. **降权但不排除**: `transfer_bonus = 0.5`，降低排序位置
+2. **标记为参考**: 检索结果中添加 `transfer_restricted: true` 标记
+3. **不注入 prompt**: 被 Planning Agent 检索到时，仅作为策略参考，其具体操作内容不进入 strategy_hint
+4. **人工可查阅**: 用户/Agent 可手动打开查看完整内容
+
+### 6.4 多 transfer_mode 混合卡片处理
+
+当一张卡片包含多种 transfer_mode 的经验时，按其各类型经验的占比计算混合 bonus：
+
+```python
+def compute_transfer_bonus(card):
+    # 统计各类型经验条目数
+    direct_count = len(card.experiences.get('direct', []))
+    indirect_count = len(card.experiences.get('indirect', []))
+    forbidden_count = len(card.experiences.get('forbidden', []))
+    total = direct_count + indirect_count + forbidden_count
+    
+    if total == 0:
+        return 1.0  # 无经验条目，默认
+    
+    # 加权平均
+    bonus = (1.2 * direct_count + 1.0 * indirect_count + 0.5 * forbidden_count) / total
+    return bonus
+```
+
+### 6.5 与检索流程的集成
+
+在原有检索流程的第 5 步和第 6 步之间插入 transfer_mode 加权：
+
+```
+1. 加载 → 2. 过滤 → 3. 语义计算 → 4. UCB 计算 → 5. 衰减计算
+    ↓
+5.5 transfer_mode 加权（新增）
+    - 读取卡片 transfer_mode 或计算混合 bonus
+    - 应用 transfer_bonus 因子
+    ↓
+6. 混合评分 + 排序
+    final_score = decay × transfer_bonus × (α × ucb_norm + β × semantic_sim)
+```
+
 ## 参考
 
 - Skill-SD 论文：UCB 技能检索原论文

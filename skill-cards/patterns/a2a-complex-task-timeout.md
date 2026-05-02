@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - memory/2026-04-28-a2a-kb.md
 planning_hints:
@@ -31,6 +32,18 @@ planning_hints:
 # A2A Gateway 复杂任务超时模式
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct:
+    - "A2A main agent 路由不支持耗时 > 30s 的任务，会稳定超时"
+  indirect:
+    - "预估耗时 > 30s 的任务路由到 dedicated agent，非阻塞投递再轮询状态"
+    - "同步→异步→极短指令是同一问题的重复尝试，一次失败后直接切换策略级别"
+  forbidden:
+    - "具体 A2A 命令和参数见 e_workflow"
+```
 
 ### 有效的策略
 - **A2A Gateway 能正确送达 main agent**：ping/pong 和简单任务可以成功

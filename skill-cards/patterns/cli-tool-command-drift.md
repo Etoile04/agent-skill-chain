@@ -12,6 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
+transfer_mode: indirect
 sources:
   - .learnings/ERRORS.md
 related_learnings:
@@ -35,6 +36,21 @@ planning_hints:
 # CLI 工具命令漂移与参数验证模式
 
 ## ✅ 成功经验 (e_success)
+
+### 经验传递分级
+```yaml
+experiences:
+  direct:
+    - "acpx 0.5.3 的 --format 和 --cwd 是全局选项，不是子命令选项"
+    - "acpx codex exec 不支持 --cwd，必须 cd 再执行"
+    - "Claude ACP + BigModel 不兼容，Agent SDK 握手成功但执行挂死"
+  indirect:
+    - "使用新 CLI 工具前先 --version + --help 验证可用参数"
+    - "外部工具命令行参数位置需查文档确认，不假设跨版本兼容"
+    - "分层测试：版本确认 → 参数验证 → 最小连通 → 完整命令"
+  forbidden:
+    - "具体命令见 e_workflow（如 acpx --format quiet codex exec 'Reply OK'）"
+```
 
 ### 有效的策略
 - **先验证后使用**：运行 `--version` 和 `--help` 确认可用参数，再执行实际命令
