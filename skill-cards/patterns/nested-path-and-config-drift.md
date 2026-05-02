@@ -12,7 +12,7 @@ usage_count: 0
 created: 2026-05-02
 updated: 2026-05-02
 status: active
-transfer_mode: indirect
+transfer_mode: forbidden
 sources:
   - .learnings/ERRORS.md
 related_learnings:

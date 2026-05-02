@@ -218,6 +218,10 @@ for card_file in cards_path.rglob("*.md"):
         title_line = body.split('\n')[0] if body else ''
         title = re.sub(r'^#+\s*', '', title_line).strip() or card_file.stem
         
+        transfer_mode = fm.get('transfer_mode', 'indirect')
+        if transfer_mode not in ('direct', 'indirect', 'forbidden'):
+            transfer_mode = 'indirect'
+
         card = {
             'id': fm.get('id', ''),
             'title': title,
@@ -231,6 +235,7 @@ for card_file in cards_path.rglob("*.md"):
             'last_used': fm.get('last_used', fm.get('updated', '')),
             'status': fm.get('status', 'draft'),
             'file_path': str(card_file.relative_to(cards_path.parent)),
+            'transfer_mode': transfer_mode,
         }
         
         # task_type 过滤
@@ -299,14 +304,30 @@ for card in cards:
     
     card['alpha_contribution'] = alpha * card['ucb_norm']
     card['beta_contribution'] = beta * card['semantic_sim']
-    card['final_score'] = card['decay_weight'] * (
-        card['alpha_contribution'] + card['beta_contribution']
-    )
+    base_score = card['alpha_contribution'] + card['beta_contribution']
+    
+    # transfer_mode adjustment
+    if card['transfer_mode'] == 'direct':
+        card['transfer_bonus'] = 1.2
+    elif card['transfer_mode'] == 'forbidden':
+        card['transfer_bonus'] = 0.5
+    else:
+        card['transfer_bonus'] = 1.0
+    
+    card['final_score'] = card['decay_weight'] * base_score * card['transfer_bonus']
 
-# ===== 排序 + 输出 =====
+# ===== 过滤 forbidden 卡 + 排序 + 输出 =====
 
-cards.sort(key=lambda x: x['final_score'], reverse=True)
-results = cards[:top_k]
+# Filter out forbidden cards (unless ALL are forbidden)
+non_forbidden = [c for c in cards if c['transfer_mode'] != 'forbidden']
+if non_forbidden:
+    cards_to_rank = non_forbidden
+else:
+    # All cards are forbidden — return them anyway to avoid empty results
+    cards_to_rank = cards
+
+cards_to_rank.sort(key=lambda x: x['final_score'], reverse=True)
+results = cards_to_rank[:top_k]
 
 output = {
     "results": [],
@@ -331,6 +352,7 @@ for card in results:
         "title": card['title'],
         "type": card['type'],
         "task_types": card['task_types'],
+        "transfer_mode": card['transfer_mode'],
         "final_score": round(card['final_score'], 4),
         "score_breakdown": {
             "ucb_raw": round(card['ucb_raw'], 4),
@@ -338,7 +360,8 @@ for card in results:
             "semantic_sim": round(card['semantic_sim'], 4),
             "decay_weight": round(card['decay_weight'], 4),
             "alpha_contribution": round(card['alpha_contribution'], 4),
-            "beta_contribution": round(card['beta_contribution'], 4)
+            "beta_contribution": round(card['beta_contribution'], 4),
+            "transfer_bonus": card['transfer_bonus']
         },
         "avg_reward": card['avg_reward'],
         "usage_count": card['usage_count'],
