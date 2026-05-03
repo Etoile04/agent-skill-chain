@@ -1,0 +1,99 @@
+{
+  "step_id": "cli-integration",
+  "step_name": "创建bash入口脚本，串联参数解析和调用链",
+  "status": "success",
+  "exit_code": 0,
+  "artifacts": {
+    "created": ["mdconvert.sh"],
+    "modified": []
+  },
+  "tests": [
+    {
+      "name": "单文件HTML转换",
+      "command": "./mdconvert.sh -f html -o /tmp/test_mdconvert_single sample.md",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true,
+      "notes": "输出 sample.html, 22行有效HTML"
+    },
+    {
+      "name": "单文件text转换",
+      "command": "./mdconvert.sh -f text -o /tmp/test_mdconvert_text sample.md",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true,
+      "notes": "输出 sample.txt, 纯文本格式正确"
+    },
+    {
+      "name": "单文件json转换",
+      "command": "./mdconvert.sh -f json -o /tmp/test_mdconvert_json sample.md",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true,
+      "notes": "输出 sample.json, 16个顶层AST节点, 有效JSON"
+    },
+    {
+      "name": "批量HTML转换",
+      "command": "./mdconvert.sh -b -f html -o /tmp/test_mdconvert_batch test_batch/",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true,
+      "notes": "2/2文件成功转换 (valid1.md, valid2.md)"
+    },
+    {
+      "name": "参数缺失错误",
+      "command": "./mdconvert.sh",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    },
+    {
+      "name": "不支持的格式",
+      "command": "./mdconvert.sh -f pdf sample.md",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    },
+    {
+      "name": "未知选项",
+      "command": "./mdconvert.sh --badflag sample.md",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    },
+    {
+      "name": "批量模式传文件",
+      "command": "./mdconvert.sh -b sample.md",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    },
+    {
+      "name": "路径不存在",
+      "command": "./mdconvert.sh nonexistent.md",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    },
+    {
+      "name": "帮助信息",
+      "command": "./mdconvert.sh -h",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true
+    }
+  ],
+  "design": {
+    "entry_script": "mdconvert.sh",
+    "shebang": "#!/usr/bin/env bash",
+    "permissions": "executable (chmod +x)",
+    "dependencies": ["converter.py (core conversion)", "batch.py (available but not directly called — batch mode iterates via convert_single)"],
+    "reporter_integration": "conditional — calls reporter.py if it exists and is executable",
+    "exit_codes": {
+      "0": "全部成功",
+      "1": "部分失败",
+      "2": "参数错误"
+    }
+  },
+  "notes": "Batch mode uses converter.py's tokenizer directly (via inline python3 -c) for each file, ensuring format support consistency. reporter.py not yet available — integration tested via conditional path."
+}
