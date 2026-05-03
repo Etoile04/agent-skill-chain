@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvaluationMetric",
+  "description": "跨层评测指标定义。",
+  "type": "object",
+  "required": ["name", "layer", "target", "unit"],
+  "properties": {
+    "name": { "type": "string" },
+    "layer": { "type": "string", "enum": ["inner", "middle", "outer"] },
+    "target": { "type": "number" },
+    "unit": { "type": "string" },
+    "description": { "type": "string" }
+  }
+}
