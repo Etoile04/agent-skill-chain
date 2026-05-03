@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TaskState",
+  "description": "长时任务的持久状态对象，支持 checkpoint/resume。",
+  "type": "object",
+  "required": ["task_id", "status", "created_at", "updated_at"],
+  "properties": {
+    "task_id": {"type": "string", "description": "唯一任务 ID"},
+    "parent_task_id": {"type": "string", "description": "父任务 ID（用于子任务）"},
+    "status": {"type": "string", "enum": ["pending", "in_progress", "paused", "completed", "failed", "cancelled"]},
+    "title": {"type": "string"},
+    "description": {"type": "string"},
+    "roadmap_id": {"type": "string", "description": "所属目标链 ID"},
+    "milestone_id": {"type": "string", "description": "当前里程碑"},
+    "current_step": {"type": "integer", "description": "当前步骤序号"},
+    "total_steps": {"type": "integer"},
+    "progress_pct": {"type": "number", "minimum": 0, "maximum": 100},
+    "checkpoint": {
+      "type": "object",
+      "properties": {
+        "step_plan_path": {"type": "string"},
+        "completed_steps": {"type": "array", "items": {"type": "string"}},
+        "artifacts": {"type": "array", "items": {"type": "string"}},
+        "resume_hint": {"type": "string"}
+      }
+    },
+    "budget": {
+      "type": "object",
+      "properties": {
+        "tokens_used": {"type": "number"},
+        "tokens_budget": {"type": "number"},
+        "cost_usd": {"type": "number"},
+        "cost_budget_usd": {"type": "number"}
+      }
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "error": {"type": "string"}
+  }
+}
