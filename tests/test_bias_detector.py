@@ -67,7 +67,7 @@ class TestBiasDetector(unittest.TestCase):
         texts = [
             "should work now",
             "all tests pass",
-            "I added extra validation too"
+            "implements unrequested features for caching"
         ]
         results = self.detector.batch_detect(texts)
         self.assertEqual(len(results), 2)
