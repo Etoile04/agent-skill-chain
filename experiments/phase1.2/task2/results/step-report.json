@@ -1,0 +1,7 @@
+{
+  "step": "report",
+  "status": "success",
+  "files": ["reporter.py", "test_reporter.py"],
+  "tests": {"total": 16, "passed": 16, "failed": 0},
+  "summary": "TestReport with TestRecord dataclass. Supports add_record, get_summary (total/success/fail/rate/avg/p50/p95/p99/error_breakdown), get_by_endpoint, get_all_endpoints, format_text, format_json. 16 unittest cases all pass."
+}
