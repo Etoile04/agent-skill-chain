@@ -1,0 +1,35 @@
+{
+  "step": "mock",
+  "status": "completed",
+  "outputs": [
+    "mock_transport.py",
+    "test_mock_transport.py"
+  ],
+  "tests": {
+    "total": 41,
+    "passed": 41,
+    "failed": 0,
+    "duration_ms": 30
+  },
+  "summary": "Implemented mock transport layer with full abstraction. Transport ABC defines request(method,url,headers,body)->(status,headers,body). MockTransport supports three modes (always_success, always_fail, realistic) plus per-route overrides. Predefined responses cover all endpoints (auth, user-info, messaging, calendar) with success, auth failure (401), rate limit (429), server error (500), and param error (400) scenarios. MockHttpClient adapter integrates with AuthManager; MockUrllibAdapter patches urllib for FeishuClient. All tests pass with zero real HTTP requests.",
+  "artifacts": {
+    "mock_transport.py": {
+      "lines": 300,
+      "classes": ["Transport", "MockTransport", "MockHttpClient", "MockUrllibAdapter"],
+      "features": ["configurable delay", "request logging", "route overrides", "3 modes"]
+    },
+    "test_mock_transport.py": {
+      "lines": 380,
+      "test_classes": 8,
+      "scenarios_covered": [
+        "auth success/failure",
+        "user success/auth_fail/rate_limit/server_error",
+        "message success/param_error",
+        "calendar success/rate_limit/server_error",
+        "AuthManager integration (token get, cache, refresh)",
+        "FeishuClient integration (all 3 endpoints)",
+        "no-real-HTTP guarantee"
+      ]
+    }
+  }
+}

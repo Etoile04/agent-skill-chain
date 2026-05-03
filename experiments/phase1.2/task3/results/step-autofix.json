@@ -1,0 +1,31 @@
+{
+  "status": "completed",
+  "artifacts": [
+    [
+      "autofix.py",
+      "test_autofix.py"
+    ]
+  ],
+  "evidence": {
+    "description": "Implemented auto-fix engine for skill cards with dry-run, backup, and re-validation loop",
+    "components": {
+      "AutoFixer": {
+        "methods": [
+          "analyze(card_dict) → FixPlan",
+          "fix(card_dict, dry_run=False) → FixedCard",
+          "fix_file(file_path, dry_run=False, backup=True) → FixResult"
+        ]
+      }
+    },
+    "fixable_issues": [
+      "Missing optional fields with defaults (priority→medium, version→0.1.0, tags→[], related_cards→[])",
+      "Non-ISO date normalization (YYYY.MM.DD, YYYY/MM/DD, YYYYMMDD → YYYY-MM-DD)",
+      "Description leading/trailing whitespace trimming",
+      "Empty string filtering from array fields (tags, sources, task_types, etc.)"
+    ],
+    "unfixable_marked_as": "manual_fix_required",
+    "post_fix_validation": true,
+    "backup": "Creates .bak file when backup=True",
+    "dry_run": "Preview mode — no files modified"
+  }
+}

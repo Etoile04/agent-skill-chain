@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkillCard",
+  "description": "Schema for validating Skill Cards used in the agent skill chain system. Derived from existing skill card markdown files with YAML frontmatter.",
+  "type": "object",
+  "required": ["name", "category", "description", "when_to_use", "common_failures"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100,
+      "description": "Human-readable name of the skill card. Must be 3-100 characters."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["pattern", "workflow", "domain"],
+      "description": "Category of the skill card. Must be one of: pattern (recurrent failure/success patterns), workflow (step-by-step procedures), domain (domain-specific knowledge)."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "Brief description of what this skill card covers. Must be 10-500 characters."
+    },
+    "when_to_use": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "List of situations where this skill card should be applied. At least one entry required."
+    },
+    "common_failures": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "List of common failure patterns this card addresses. At least one entry required."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+      "description": "Semantic version string (semver format, e.g. '1.0.0', '2.1.0-alpha'). Optional."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Arbitrary tags for search and categorization. Optional."
+    },
+    "related_cards": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Names or IDs of related skill cards. Optional."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when the skill card was created (YYYY-MM-DD). Optional."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when the skill card was last updated (YYYY-MM-DD). Optional."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Priority level indicating how important this skill card is. Optional."
+    }
+  }
+}

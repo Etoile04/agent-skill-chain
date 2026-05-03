@@ -1,0 +1,48 @@
+{
+  "step": "batch-process",
+  "status": "success",
+  "summary": "Batch directory scan and conversion with per-file error isolation implemented and verified",
+  "details": {
+    "implementation": "batch.py with inline md_to_html converter (stdlib only, no converter.py dependency)",
+    "test_files_created": {
+      "valid1.md": "78 bytes — headings, bold, list items",
+      "valid2.md": "153 bytes — headings, code block, sections",
+      "invalid.txt": "93 bytes — non-markdown extension, should be skipped"
+    },
+    "execution_results": {
+      "total_scanned": 3,
+      "success": 2,
+      "error": 0,
+      "skipped": 1,
+      "files": [
+        {
+          "name": "valid1.md",
+          "status": "success",
+          "input_size": 78,
+          "output_size": 405,
+          "output": "valid1.html"
+        },
+        {
+          "name": "valid2.md",
+          "status": "success",
+          "input_size": 153,
+          "output_size": 467,
+          "output": "valid2.html"
+        },
+        {
+          "name": "invalid.txt",
+          "status": "skipped",
+          "reason": "Unsupported extension: .txt"
+        }
+      ]
+    },
+    "error_isolation_verified": true,
+    "completion_criteria_met": "Valid files all converted successfully; invalid file logged and skipped without interrupting flow"
+  },
+  "artifacts": {
+    "batch_script": "/tmp/agent-skill-chain/experiments/phase1.2/task1/batch.py",
+    "test_input_dir": "/tmp/agent-skill-chain/experiments/phase1.2/task1/test_batch/",
+    "test_output_dir": "/tmp/agent-skill-chain/experiments/phase1.2/task1/test_output/",
+    "batch_result_json": "/tmp/agent-skill-chain/experiments/phase1.2/task1/test_output/batch_result.json"
+  }
+}

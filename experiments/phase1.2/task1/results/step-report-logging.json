@@ -1,0 +1,55 @@
+{
+  "step": "report-logging",
+  "status": "success",
+  "artifacts": ["reporter.py"],
+  "summary": "Created reporter.py — report generation and structured logging module for batch conversion results",
+  "details": {
+    "module": "reporter.py",
+    "features": [
+      "Accepts BatchResult from batch.py (dict or list of result entries)",
+      "Structured JSON report to stdout with summary + per-file details",
+      "Leveled logging to stderr (DEBUG, INFO, WARNING, ERROR) with timestamps",
+      "Per-file size change tracking: original → output bytes, change rate as ratio",
+      "Aggregate stats: total input/output bytes, overall change rate",
+      "Elapsed time tracking passed from caller",
+      "CLI mode: reads batch_result.json and outputs report",
+      "Programmatic API: report_from_batch_result() for direct integration"
+    ],
+    "report_format": {
+      "summary": {
+        "total_files": "int",
+        "success": "int",
+        "error": "int",
+        "skipped": "int",
+        "total_input_bytes": "int",
+        "total_output_bytes": "int",
+        "overall_change_rate": "float or null — (output-input)/input",
+        "elapsed_seconds": "float"
+      },
+      "files": [
+        {
+          "filename": "str",
+          "status": "success|error|skipped",
+          "original_size": "int (bytes)",
+          "output_size": "int or null",
+          "change_rate": "float or null — (output-input)/input",
+          "error": "str or null"
+        }
+      ]
+    },
+    "validation": {
+      "tested_with": "batch.py output from test_batch/ (2 .md + 1 .txt)",
+      "counts_correct": "success=2, error=0, skipped=1",
+      "size_changes_correct": {
+        "valid1.md": "78B → 405B (+419.2%)",
+        "valid2.md": "153B → 467B (+205.2%)",
+        "invalid.txt": "93B, skipped"
+      },
+      "total_input": 324,
+      "total_output": 872,
+      "overall_change_rate": "+169.14%",
+      "stdout_stderr_separation": "JSON report → stdout, log messages → stderr",
+      "log_levels_tested": ["DEBUG", "INFO", "WARNING", "ERROR"]
+    }
+  }
+}

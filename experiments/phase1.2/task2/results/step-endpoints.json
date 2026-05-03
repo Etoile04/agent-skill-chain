@@ -1,0 +1,16 @@
+{
+  "step_name": "endpoints",
+  "status": "success",
+  "output_files": [
+    "endpoints.py",
+    "test_endpoints.py"
+  ],
+  "summary": "Implemented FeishuClient with 3 API endpoints (get_user_info, send_message, list_calendar_events). Includes FeishuResponse dataclass, error classification (network/auth/param/rate_limit/server), and 22 unit tests all passing with mocked HTTP.",
+  "tests_passed": 22,
+  "tests_total": 22,
+  "details": {
+    "classes": ["FeishuClient", "FeishuResponse", "UserInfo", "MessageResult", "CalendarEvent", "FeishuErrorType"],
+    "error_types": ["NETWORK", "AUTH", "PARAM", "RATE_LIMIT", "SERVER", "UNKNOWN"],
+    "test_coverage": "success paths, param validation, auth errors, rate limits, server errors, network failures, empty results, JSON parse errors"
+  }
+}
