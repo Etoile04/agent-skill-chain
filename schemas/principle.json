@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Principle",
+  "description": "行为原则：从错误/反思中提炼的可执行规则。",
+  "type": "object",
+  "required": ["principle_id", "title", "description", "source", "trigger", "action"],
+  "properties": {
+    "principle_id": { "type": "string" },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "source": { "type": "string", "enum": ["reflection", "error", "human", "autonomous"] },
+    "trigger": { "type": "string" },
+    "action": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "times_applied": { "type": "integer" },
+    "times_prevented_error": { "type": "integer" },
+    "created_at": { "type": "number" }
+  }
+}

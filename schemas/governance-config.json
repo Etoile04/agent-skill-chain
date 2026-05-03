@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GovernanceConfig",
+  "description": "Agent 治理配置：审批规则、权限边界、预算限制。",
+  "type": "object",
+  "properties": {
+    "approval_rules": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "enum": ["auto", "manual", "disabled"] }
+    },
+    "agent_permissions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "allowed_operations": { "type": "array", "items": { "type": "string" } },
+          "max_budget_tokens": { "type": "integer" },
+          "max_concurrent_tasks": { "type": "integer" }
+        }
+      }
+    },
+    "version": { "type": "string" },
+    "updated_at": { "type": "number" }
+  }
+}

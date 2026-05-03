@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BiasPattern",
+  "description": "认知偏差模式：Agent 已知的行为偏差。",
+  "type": "object",
+  "required": ["pattern_id", "name", "description", "indicators", "severity"],
+  "properties": {
+    "pattern_id": { "type": "string" },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "indicators": { "type": "array", "items": { "type": "string" } },
+    "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+    "created_at": { "type": "number" }
+  }
+}
