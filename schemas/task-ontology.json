@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TaskOntology",
+  "description": "任务本体：定义任务分类体系和相似度关系。",
+  "type": "object",
+  "required": ["type_id", "category", "keywords", "required_capabilities", "typical_complexity"],
+  "properties": {
+    "type_id": { "type": "string" },
+    "category": { "type": "string" },
+    "keywords": { "type": "array", "items": { "type": "string" } },
+    "required_capabilities": { "type": "array", "items": { "type": "string" } },
+    "typical_complexity": { "type": "string", "enum": ["low", "medium", "high"] }
+  }
+}
